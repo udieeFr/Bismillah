@@ -199,4 +199,13 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    //session timeout
+    public $sessionDriver = 'CodeIgniter\Session\Handlers\FileHandler'; // Session handler (e.g., file, database)
+    public $sessionCookieName = 'ci_session'; // Session cookie name
+    public $sessionExpiration = 7200; // Session lifetime in seconds (default: 7200 seconds = 2 hours)
+    public $sessionSavePath = WRITEPATH . 'session'; // Path to store session files
+    public $sessionMatchIP = false; // Whether to match session based on IP address
+    public $sessionTimeToUpdate = 300; // How often the session ID should regenerate (in seconds)
+    public $sessionRegenerateDestroy = false; // Whether old session data should be destroyed on regeneration
 }
