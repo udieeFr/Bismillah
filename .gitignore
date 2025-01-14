@@ -2,6 +2,8 @@
 # Operating Specific Junk Files
 #-------------------------
 
+.env //contains superadmin password
+
 # OS X
 .DS_Store
 .AppleDouble

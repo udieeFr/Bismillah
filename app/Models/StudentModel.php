@@ -10,6 +10,7 @@ class StudentModel extends Model
     protected $primaryKey = 'userID';  // Update to the correct column name
 
     protected $allowedFields = [
+        'userID',
         'matricNum',
         'name',
         'email',
@@ -18,6 +19,12 @@ class StudentModel extends Model
         'two_factor_code',
         'two_factor_expires_at',
     ];
+    //get data from database
+    public function getStudentDetails($userID) {
+        return $this->select('matricNum, name, email')
+                    ->where('userID', $userID)
+                    ->first();
+    }
 
     protected $returnType = 'array'; // Return data as an array
 }

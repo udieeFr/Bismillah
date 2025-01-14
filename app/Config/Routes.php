@@ -15,10 +15,18 @@ $routes->post('auth/save_register', 'Auth::save_register');
 
 // In Config/Routes.php
 $routes->get('login', 'Login::index');
-$routes->post('login/authenticate', 'Login::authenticate');
 
-$routes->get('studentDashboard', 'StudentDashboard::index', ['filter' => 'auth']);
+//authenticate student
+$routes->post('login/authenticate', 'Login::authenticate');
+//authenticate admin
+$routes->post('admin/authenticate', 'AdminAuth::authenticate');
 
 //email verification
 $routes->get('verify-email', 'Auth::verifyEmail');
+$routes->post('process-verification', 'Auth::processEmailVerification');
 $routes->post('auth/processEmailVerification', 'Auth::processEmailVerification');
+
+$routes->get('studentDashboard', 'StudentDashboard::index', ['filter' => 'auth']);
+//more info on user profile
+$routes->get('student/getProfile', 'Student::getProfile');
+

@@ -30,7 +30,6 @@
                            class="form-control" placeholder="Enter 6-digit code" 
                            required maxlength="6" pattern="[0-9]{6}">
                 </div>
-
                 <button type="submit" class="btn">Verify Email</button>
 
                 <div class="divider">

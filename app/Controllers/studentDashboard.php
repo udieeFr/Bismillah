@@ -10,4 +10,12 @@ class studentDashboard extends BaseController
     {
         return view('v_stDashboard'); // You'll need to create this view
     }
+
+    public function getProfile()
+    {
+       //$studentModel = new StudentModel();
+        //$userID = session()->get('userID');
+       // $student = $studentModel->getStudentDetails($userID);
+        //return $this->response->setJSON($student);
+    }
 }
