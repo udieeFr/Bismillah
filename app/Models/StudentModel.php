@@ -15,6 +15,8 @@ class StudentModel extends Model
         'email',
         'password_hash',
         'fine_amount',
+        'two_factor_code',
+        'two_factor_expires_at',
     ];
 
     protected $returnType = 'array'; // Return data as an array

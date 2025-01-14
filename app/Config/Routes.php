@@ -18,3 +18,7 @@ $routes->get('login', 'Login::index');
 $routes->post('login/authenticate', 'Login::authenticate');
 
 $routes->get('studentDashboard', 'StudentDashboard::index', ['filter' => 'auth']);
+
+//email verification
+$routes->get('verify-email', 'Auth::verifyEmail');
+$routes->post('auth/processEmailVerification', 'Auth::processEmailVerification');

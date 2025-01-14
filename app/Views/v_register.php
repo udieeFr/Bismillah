@@ -219,7 +219,7 @@
                     <label class="form-label" for="email">Email</label>
                     <input type="email" name="email" id="email" 
                            class="form-control" placeholder="e.g., atan@gmail.com" 
-                           value="<?= old('class') ?>" required>
+                           value="<?= old('email') ?>" required>
                 </div>
 
                 <div class="form-outline">

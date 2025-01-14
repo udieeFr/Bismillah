@@ -73,12 +73,18 @@ class Auth extends Controller
         // Create new instance of StudentModel
         $studentModel = new StudentModel();
 
+        // Generate verification code
+        $verificationCode = sprintf("%06d", mt_rand(100000, 999999));
+        $expiryTime = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
         // Prepare data for insertion
         $data = [
             'matricNum' => $this->request->getPost('matricNum'),
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
-            'password_hash' => password_hash($this->request->getPost('password'), PASSWORD_BCRYPT)
+            'password_hash' => password_hash($this->request->getPost('password'), PASSWORD_BCRYPT),
+            'two_factor_code' => $verificationCode,          // Match database column name
+            'two_factor_expires_at' => $expiryTime          // Match database column name
         ];
 
         // All fields validated, now insert the student
@@ -86,14 +92,76 @@ class Auth extends Controller
             // Insert the data into the database
             $studentModel->save($data);
             
-            // Flash success message and redirect to login
-            return redirect()->to('/login')
-                           ->with('success', 'Registration successful! Please login with your email and password.');
+            //get userID to find in table
+            $userId = $studentModel->getInsertID();
+
+            //sent verification email
+            $email = service('email');
+            $email->setTo($data['email']);
+            $email->setFrom('rusdirashid04@gmail.com', 'SMK Tanjung Puter Resort');
+            $email->setSubject('Email Verification');
+            $email->setMessage(view('emails/v_verificationCode', [
+                'code' => $verificationCode,
+                'name' => $data['name']
+            ]));
+            
+            if ($email->send()) {
+            // Store user ID in session for verification
+            session()->set('pending_verification_id', $userId);
+            return redirect()->to('verify-email');
+
+            } else {
+                // Handle email sending failure
+                $studentModel->delete($userId);
+                return redirect()->back()
+                            ->withInput()
+                            ->with('error', 'Failed to send verification email. Please try again.');
+            }
         } catch (\Exception $e) {
             // Handle any database errors
             return redirect()->back()
                            ->withInput()
-                           ->with('error', 'Registration failed. Please try again.');
+                           ->with('error', 'Registration failed. Please try again.' . $e->getMessage());
         }
+    }
+
+    public function verifyEmail(){
+        if(!session()->has('pending_verification_id')){
+            return redirect()->to('register');
+        }
+        return view('v_verify_email');
+    }
+
+    public function processEmailVerification(){
+
+        $code = $this->request->getPost('code'); //verification code
+        $userId = session()->get('pending_verification_id');
+
+        if (!$userId) {
+            return redirect()->to('register');
+        }
+        $studentModel = new StudentModel();
+        $student = $studentModel->find($userId);
+
+        if ($student && 
+        $student['two_factor_code'] === $code && 
+        strtotime($student['two_factor_expires_at']) > time()) 
+        {
+        
+            // Clear verification data
+            $studentModel->update($userId, [
+                'two_factor_code' => null, //will only have value when code is sent to email
+                'two_factor_expires_at' => null
+            ]);
+            // Clear pending status
+            session()->remove('pending_verification_id');
+
+            // Redirect to login with success message
+            return redirect()->to('login')
+                           ->with('success', 'Email verified successfully! You can now login.');
+        }
+
+        return redirect()->to('verify-email')
+                       ->with('error', 'Invalid or expired verification code');
     }
 }
