@@ -3,19 +3,15 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\models\StudentModel;
 
-class studentDashboard extends BaseController
+class StudentDashboard extends BaseController
 {
     public function index()
     {
-        return view('v_stDashboard'); // You'll need to create this view
-    }
+        $studentModel = new StudentModel();
+        $studentData = $studentModel->getStudentDetails(session()->get('userID'));
 
-    public function getProfile()
-    {
-       //$studentModel = new StudentModel();
-        //$userID = session()->get('userID');
-       // $student = $studentModel->getStudentDetails($userID);
-        //return $this->response->setJSON($student);
+        return view('v_stDashboard', ['studentData' => $studentData]);
     }
 }

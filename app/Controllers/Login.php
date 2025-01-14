@@ -58,4 +58,10 @@ class Login extends BaseController
             return redirect()->to('/login');  // Stay on login page
         }
     }
+
+    public function logout(){
+        session()->destroy();
+
+        return redirect()->to('/login')->with('success', 'successfully logged out');
+    }
 }

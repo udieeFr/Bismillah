@@ -5,16 +5,19 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+
+ //initial page = login
 $routes->get('/', 'Login::index');
 $routes->get('/login', 'Login::index');
+
+//register if new user
 $routes->get('/login/register', 'Auth::register');
 $routes->get('/register', 'Auth::register');
+
+//authentication
 $routes->get('auth/register', 'Auth::register');
 $routes->get('register', 'Auth::register');
 $routes->post('auth/save_register', 'Auth::save_register');
-
-// In Config/Routes.php
-$routes->get('login', 'Login::index');
 
 //authenticate student
 $routes->post('login/authenticate', 'Login::authenticate');
@@ -30,3 +33,5 @@ $routes->get('studentDashboard', 'StudentDashboard::index', ['filter' => 'auth']
 //more info on user profile
 $routes->get('student/getProfile', 'Student::getProfile');
 
+//logout
+$routes->get('/logout', 'login::logout');
