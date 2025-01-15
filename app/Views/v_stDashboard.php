@@ -178,6 +178,7 @@
                     <p>2. Enter the exact amount of your fine: RM <?= number_format($studentData['fine_amount'] ?? 0, 2) ?></p>
                     <p>3. Keep your receipt for reference</p>
                     <p>4. Send your receipt to the admins number, 015-6364 252</p>
+                    <p> Note : Your could also pay in cash in the administrators officce within office hour (9.00 am-5.00p.m.)</p>
                     <div class="alert alert-warning">
                         <strong>Note:</strong> Payment might take 1-2 working days to be reflected in the system.
                     </div>
@@ -187,38 +188,51 @@
 
         <!-- History Section -->
         <div id="historySection" style="display: none;" class="profile-section shadow mt-4">
-            <div class="profile-header">
-                <h4 class="mb-0">Transaction History</h4>
-            </div>
-            <div class="row g-3">
-                <div class="col-md-12">
-                    <p><strong>Recent Transactions</strong></p>
-                    <!-- Add your transaction history content here -->
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Description</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- You can populate this with actual data from your database -->
-                                <tr>
-                                    <td><?= date('Y-m-d') ?></td>
-                                    <td>Current Fine</td>
-                                    <td>RM <?= number_format($studentData['fine_amount'] ?? 0, 2) ?></td>
-                                    <td><span class="badge bg-warning">Pending</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <div class="profile-header">
+        <h4 class="mb-0">Transaction History</h4>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-12">
+            <p><strong>Past Transactions</strong></p>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        // Assuming you pass transaction history to the view
+                        if (!empty($transactionHistory)): 
+                            foreach ($transactionHistory as $transaction): 
+                        ?>
+                            <tr>
+                                <td><?= date('d M Y', strtotime($transaction['date'])) ?></td>
+                                <td><?= $transaction['details'] ?? 'N/A' ?></td>
+                                <td><?= $transaction['transactionType'] ?? 'N/A' ?></td>
+                                <td>
+                                    <?= $transaction['transactionType'] == 'Fine' ?> 
+                                    RM <?= number_format($transaction['amount'], 2) ?>
+                                </td>
+                            </tr>
+                        <?php 
+                            endforeach; 
+                        else: 
+                        ?>
+                            <tr>
+                                <td colspan="4" class="text-center">No transaction history found</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

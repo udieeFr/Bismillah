@@ -11,8 +11,9 @@ class Login extends BaseController
 {
     protected $securityHelper;
 
-    public function __construct() {
-        $this->securityHelper = new SecurityHelper(); 
+    public function __construct()
+    {
+        $this->securityHelper = new SecurityHelper();
     }
 
     public function index()
@@ -25,10 +26,11 @@ class Login extends BaseController
         // Check rate limiting
         $ip = $this->request->getIPAddress();
 
+        //max try 5 in 300second
         if (!$this->securityHelper->checkRateLimit($ip, 'login', 5, 300)) {
             $remainingTime = $this->securityHelper->getRemainingAttempts($ip, 'login', 5, 300);
             return redirect()->back()
-                           ->with('error', "Too many login attempts. Please try again in {$remainingTime} seconds.");
+                ->with('error', "Too many login attempts. Please try again in {$remainingTime} seconds.");
         }
         // Sanitize and Get user input
         $inputData = $this->securityHelper->sanitizeInput([
@@ -42,24 +44,25 @@ class Login extends BaseController
         // Check if the student exists by matric number
         $student = $studentModel->where('matricNum', $inputData['matricNum'])->first();
 
-        if ($student && password_verify($inputData['password'], $student['password_hash'])) {
+
+        //hash equal rather than password verify, to prevent timing attack
+        if ($student && $this->securityHelper->hashEquals("true", password_verify($inputData['password'], $student['password_hash']) ? "true" : "false")) {
             // If student exists and password is correct
             session()->set([
                 'userID' => $student['userID'],
                 'name' => $student['name'],
                 'logged_in' => true,
             ]);
-
-        return redirect()->to('/studentDashboard');  // 
-        } 
-        else {
+            return redirect()->to('/studentDashboard');  // 
+        } else {
             // Invalid credentials
             session()->setFlashdata('error', 'Invalid Matric Number or Password');
             return redirect()->to('/login');  // Stay on login page
         }
     }
 
-    public function logout(){
+    public function logout()
+    {
         session()->destroy();
 
         return redirect()->to('/login')->with('success', 'successfully logged out');

@@ -10,28 +10,29 @@ use App\Libraries\SecurityHelper;
 class Auth extends Controller
 {
 
-    protected $securityHelper; 
-    public function __construct() {
+    protected $securityHelper;
+    public function __construct()
+    {
         helper('form'); // Load the form helper
         $this->securityHelper = new SecurityHelper(); //load SecurityHelper class's instance
-    }  
+    }
 
     public function register()
     {
         return view('v_register');
-    }  
+    }
 
     public function save_register()
     {
         $validation = \Config\Services::validation();
-        
+
         //check rate limit
         $ip = $this->request->getIPAddress();
         if (!$this->securityHelper->checkRateLimit($ip, 'register', 3, 300)) {
             return redirect()->back()
-                           ->with('error', 'Too many registration attempts. Please try again in 5 minutes.');
+                ->with('error', 'Too many registration attempts. Please try again in 5 minutes.');
         }
-        
+
         // Get and sanitize input data
         $inputData = $this->securityHelper->sanitizeInput([
             'matricNum' => $this->request->getPost('matricNum'),
@@ -86,8 +87,8 @@ class Auth extends Controller
 
         if (!$validation->run($inputData)) {
             return redirect()->back()
-                           ->withInput()
-                           ->with('errors', $validation->getErrors());
+                ->withInput()
+                ->with('errors', $validation->getErrors());
         }
 
         // Create new instance of StudentModel
@@ -105,7 +106,7 @@ class Auth extends Controller
         try {
             // Insert the data into the database
             $studentModel->save($data);
-            
+
             // Get userID to find in table
             $userId = $studentModel->getInsertID();
 
@@ -120,87 +121,44 @@ class Auth extends Controller
                 // Handle email sending failure
                 $studentModel->delete($userId);
                 return redirect()->back()
-                            ->withInput()
-                            ->with('error', 'Failed to send verification email. Please try again.');
+                    ->withInput()
+                    ->with('error', 'Failed to send verification email. Please try again.');
             }
         } catch (\Exception $e) {
             // Handle any database errors
             return redirect()->back()
-                           ->withInput()
-                           ->with('error', 'Registration failed. Please try again.' . $e->getMessage());
+                ->withInput()
+                ->with('error', 'Registration failed. Please try again.' . $e->getMessage());
         }
     }
 
     public function verifyEmail()
     {
-        if(!session()->has('pending_verification_id')){
+        if (!session()->has('pending_verification_id')) {
             return redirect()->to('register');
         }
         return view('v_verify_email');
     }
 
-    public function processEmailVerification()
+
+    //boleh pakai untuk verify both admin ataupun user
+    public function sendVerificationCode($model, $user, $verifyType)
     {
-        $code = $this->request->getPost('code');
-        $userId = session()->get('pending_verification_id');
 
-        if (!$userId) {
-            return redirect()->to('login');
-        }
-
-        // Determine the model based on the verification type
-        $verifyType = session()->get('verification_type');
-        
-        if ($verifyType === 'student') {
-            $model = new StudentModel();
-            $redirectSuccess = 'login';
-            $successMessage = 'Email verified successfully! You can now login.';
-        } else {
-            $model = new AdminModel();
-            $redirectSuccess = 'login';
-            $successMessage = 'Admin verification successful!';
-        }
-
-        $user = $model->find($userId);
-
-        if ($user && 
-            $user['two_factor_code'] === $code && 
-            strtotime($user['two_factor_expires_at']) > time()) 
-        {
-            // Clear verification data
-            $model->update($userId, [
-                'two_factor_code' => null,
-                'two_factor_expires_at' => null
-            ]);
-            
-            // Clear pending status
-            session()->remove('pending_verification_id');
-            session()->remove('verification_type');
-
-            // Redirect to login with success message
-            return redirect()->to($redirectSuccess)
-                           ->with('success', $successMessage);
-        }
-
-        return redirect()->to('verify-email')
-                       ->with('error', 'Invalid or expired verification code');
-    }
-
-    public function sendVerificationCode($model, $user, $verifyType){
-        // Determine the primary key dynamically
+        //cari primary key
         $primaryKey = $model->primaryKey;
 
-        // Generate verification code
+        // Generate verification code and waktu exipired
         $verificationCode = sprintf("%06d", mt_rand(100000, 999999));
         $expiryTime = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
-        // Update user with verification code using the correct primary key
+        // masukkan verification code dalam table
         $model->update($user[$primaryKey], [
             'two_factor_code' => $verificationCode,
             'two_factor_expires_at' => $expiryTime
         ]);
 
-        // Send verification email
+        // Send verification email usign gmail smtp
         $email = service('email');
         $email->setTo($user['email']);
         $email->setFrom('rusdirashid04@gmail.com', 'SMK Tanjung Puter Resort');
@@ -209,14 +167,65 @@ class Auth extends Controller
             'code' => $verificationCode,
             'name' => $user['name'] ?? $user['username']
         ]));
-        
+
         if ($email->send()) {
             // Store user ID in session for verification
-            session()->set('pending_verification_id', $user[$primaryKey]);
-            session()->set('verification_type', $verifyType);
+            session()->set('pending_verification_id', $user[$primaryKey]); //see siapa yang currently in verif proccess
+            session()->set('verification_type', $verifyType); //admin or user
             return true;
         }
 
         return false;
+    }
+    public function processEmailVerification()
+    {
+        $code = $this->request->getPost('code'); //code user just entered
+        $userId = session()->get('pending_verification_id'); //who is user
+
+        if (!$userId) {
+            return redirect()->to('register'); //or login
+        }
+
+        // Determine the model based on the verification type
+        $verifyType = session()->get('verification_type');
+
+        //student verify when register
+        if ($verifyType === 'student') {
+            $model = new StudentModel();
+            $redirectSuccess = 'login'; //success = go to login page to try log in
+            $successMessage = 'Email verified successfully! You can now login.';
+        } else {
+            //admin verify on each log in
+            $model = new AdminModel();
+            $redirectSuccess = 'AdminDashboard'; //success = create admin view
+            $successMessage = 'Admin verification successful!';
+            session()->set('logged_in', true); // Set admin as logged in after verification
+        }
+
+        $user = $model->find($userId);
+
+        //reset verification code and expires time on database to NULL
+        if (
+            $user &&
+            $user['two_factor_code'] === $code &&
+            strtotime($user['two_factor_expires_at']) > time()
+        ) {
+            // Clear verification data
+            $model->update($userId, [
+                'two_factor_code' => null,
+                'two_factor_expires_at' => null
+            ]);
+
+            // Clear pending status
+            session()->remove('pending_verification_id');
+            session()->remove('verification_type');
+
+            // if success, dapat message success
+            return redirect()->to($redirectSuccess)
+                ->with('success', $successMessage);
+        } else {
+            return redirect()->to('verify-email') //repeat
+                ->with('error', 'Invalid or expired verification code');
+        }
     }
 }

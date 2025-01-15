@@ -19,6 +19,13 @@ class StudentModel extends Model
         'two_factor_code',
         'two_factor_expires_at',
     ];
+    // admin akan search guna matric num
+    public function findByMatricNum($matricNum) {
+        return $this->select('userID, matricNum, name, email, fine_amount')
+                    ->where('matricNum', $matricNum)
+                    ->first();
+    }
+
     //get data from database
     public function getStudentDetails($userID) {
         return $this->select('matricNum, name, email, fine_amount')
@@ -26,5 +33,6 @@ class StudentModel extends Model
                     ->first();
     }
 
+    
     protected $returnType = 'array'; // Return data as an array
 }

@@ -74,8 +74,16 @@ class SecurityHelper {
      * @param int $timeWindow Time window in seconds
      * @return int Number of attempts remaining
      */
+
+     //prevent bruteforce
     public function getRemainingAttempts(string $key, string $action, int $maxAttempts = 5, int $timeWindow = 300): int {
         $tokenName = "rate_limit_{$action}_{$key}";
         return $this->throttler->getTokentime($tokenName, $maxAttempts, $timeWindow);
+    }
+    
+    //prevent timing attack
+    public function hashEquals($knownString, $userString) 
+    {
+        return hash_equals($knownString, $userString);
     }
 }
