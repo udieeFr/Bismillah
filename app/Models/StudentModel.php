@@ -21,7 +21,7 @@ class StudentModel extends Model
     ];
     //get data from database
     public function getStudentDetails($userID) {
-        return $this->select('matricNum, name, email')
+        return $this->select('matricNum, name, email, fine_amount')
                     ->where('userID', $userID)
                     ->first();
     }

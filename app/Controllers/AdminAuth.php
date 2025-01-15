@@ -17,11 +17,11 @@ class AdminAuth extends Controller
         // Load the AdminModel
         $adminModel = new AdminModel();
 
-        // Check if the admin exists by username
+        // Check if the admin
         $admin = $adminModel->findByUsername($username);
 
         if ($admin && password_verify($password, $admin['password_hash'])) {
-            // Use the generic verification method from Auth controller
+
             $authController = new AuthController();
             
             if ($authController->sendVerificationCode($adminModel, $admin, 'admin')) {

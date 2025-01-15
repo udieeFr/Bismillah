@@ -106,8 +106,8 @@
                         <i class="fas fa-user-circle text-white fa-2x"></i>
                     </div>
                     <h5>Student Profile</h5>
-                    <p class="text-muted">View and manage your profile information</p>
-                    <a href="#" onclick="toggleProfile()" class="btn btn-gradient w-100">
+                    <p class="text-muted">View your profile information</p>
+                    <a href="#" onclick="toggleSection('profileSection')" class="btn btn-gradient w-100">
                         View Profile
                     </a>
                 </div>
@@ -123,8 +123,8 @@
                     <h3 class="text-danger mb-3">
                         RM <?= number_format($studentData['fine_amount'] ?? 0, 2) ?>
                     </h3>
-                    <a href="<?= site_url('student/payment') ?>" class="btn btn-gradient w-100">
-                        Balance History
+                    <a href="#" onclick="toggleSection('paymentSection')" class="btn btn-gradient w-100">
+                        Payment
                     </a>
                 </div>
             </div>
@@ -137,7 +137,7 @@
                     </div>
                     <h5>Fine History</h5>
                     <p class="text-muted">View your past transactions and payments</p>
-                    <a href="<?= site_url('student/transactions') ?>" class="btn btn-gradient w-100">
+                    <a href="#" onclick="toggleSection('historySection')" class="btn btn-gradient w-100">
                         Past Transaction
                     </a>
                 </div>
@@ -145,8 +145,7 @@
         </div>
 
         <!-- Profile Section -->
-        <?php if (isset($showProfile) && $showProfile): ?>
-        <div class="profile-section shadow">
+        <div id="profileSection" style="display: none;" class="profile-section shadow">
             <div class="profile-header">
                 <h4 class="mb-0">Student Profile Details</h4>
             </div>
@@ -157,43 +156,85 @@
                     <p><strong>Email:</strong> <?= esc($studentData['email'] ?? 'N/A') ?></p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Program:</strong> <?= esc($studentData['program'] ?? 'N/A') ?></p>
-                    <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
-                    <p><strong>Last Login:</strong> <?= date('d M Y H:i:s') ?></p>
+                    <p><strong>Matric Number:</strong> <?= esc($studentData['matricNum'] ?? 'N/A') ?></p>
+                    <p><strong>Status:</strong> <span class="badge bg-success">Student</span></p>
+                    <p><strong>Last Login:</strong> <?= date('d M Y') ?></p>
                 </div>
             </div>
         </div>
-        <?php endif; ?>
+
+        <!-- Payment Section -->
+        <div id="paymentSection" style="display: none;" class="profile-section shadow mt-4">
+            <div class="profile-header">
+                <h4 class="mb-0">Payment Information</h4>
+            </div>
+            <div class="row g-3 p-4">
+                <div class="col-md-4">
+                    <img src="<?= base_url('assets/images/qrCode.jpg') ?>" alt="QR Code" class="img-fluid">
+                </div>
+                <div class="col-md-8">
+                    <h5>Payment Instructions:</h5>
+                    <p>1. Scan the QR code using your mobile banking app</p>
+                    <p>2. Enter the exact amount of your fine: RM <?= number_format($studentData['fine_amount'] ?? 0, 2) ?></p>
+                    <p>3. Keep your receipt for reference</p>
+                    <p>4. Send your receipt to the admins number, 015-6364 252</p>
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> Payment might take 1-2 working days to be reflected in the system.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div id="historySection" style="display: none;" class="profile-section shadow mt-4">
+            <div class="profile-header">
+                <h4 class="mb-0">Transaction History</h4>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <p><strong>Recent Transactions</strong></p>
+                    <!-- Add your transaction history content here -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- You can populate this with actual data from your database -->
+                                <tr>
+                                    <td><?= date('Y-m-d') ?></td>
+                                    <td>Current Fine</td>
+                                    <td>RM <?= number_format($studentData['fine_amount'] ?? 0, 2) ?></td>
+                                    <td><span class="badge bg-warning">Pending</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap JS -->
-    <div id="profileSection" style="display: none;" class="profile-section shadow">
-    <div class="profile-header">
-        <h4 class="mb-0">Student Profile Details</h4>
-    </div>
-    <div class="row g-3">
-        <div class="col-md-6">
-            <p><strong>Student ID:</strong> <?= esc($studentData['matricNum'] ?? 'N/A') ?></p>
-            <p><strong>Name:</strong> <?= esc($studentData['name'] ?? 'N/A') ?></p>
-            <p><strong>Email:</strong> <?= esc($studentData['email'] ?? 'N/A') ?></p>
-        </div>
-        <div class="col-md-6">
-            
-            <p><strong>Matric Number:</strong> <?= esc($studentData['matricNum'] ?? 'N/A') ?></p>
-            <p><strong>Status:</strong> <span class="badge bg-success">Student</span></p>
-            <p><strong>Last Login:</strong> <?= date('d M Y') ?></p>
-        </div>
-    </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Toggle Function -->
     <script>
-        function toggleProfile() {
-            var profileSection = document.getElementById('profileSection');
-            if (profileSection.style.display === 'none') {
-                profileSection.style.display = 'block';
-            } else {
-                profileSection.style.display = 'none';
-            }
-        }
+    function toggleSection(sectionId) {
+        // Hide all sections first
+        document.getElementById('profileSection').style.display = 'none';
+        document.getElementById('paymentSection').style.display = 'none';
+        document.getElementById('historySection').style.display = 'none';
+        
+        // Show the clicked section
+        var section = document.getElementById(sectionId);
+        section.style.display = 'block';
+    }
     </script>
 </body>
-</html> 
+</html>
